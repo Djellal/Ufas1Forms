@@ -4,8 +4,9 @@ using Ufas1Forms.Models;
 
 namespace Ufas1Forms.Data;
 
-public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : IdentityDbContext(options)
+public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : IdentityDbContext<ApplicationUser>(options)
 {
+    public DbSet<ApplicationUser> ApplicationUsers { get; set; }
     public DbSet<Etablissement> Etablissements { get; set; }
     public DbSet<Faculte> Facultes { get; set; }
     public DbSet<Domaine> Domaines { get; set; }

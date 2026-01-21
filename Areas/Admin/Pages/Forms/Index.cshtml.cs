@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
@@ -11,17 +12,29 @@ namespace Ufas1Forms.Areas.Admin.Pages.Forms;
 public class IndexModel : PageModel
 {
     private readonly ApplicationDbContext _context;
+    private readonly UserManager<ApplicationUser> _userManager;
 
-    public IndexModel(ApplicationDbContext context)
+    public IndexModel(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
     {
         _context = context;
+        _userManager = userManager;
     }
 
     public List<FormListItem> Forms { get; set; } = new();
 
     public async Task OnGetAsync()
     {
-        Forms = await _context.Forms
+        var currentUser = await _userManager.GetUserAsync(User);
+        var isAdmin = User.IsInRole("admin");
+
+        var query = _context.Forms.AsQueryable();
+
+        if (!isAdmin && currentUser?.FaculteId != null)
+        {
+            query = query.Where(f => f.FaculteId == currentUser.FaculteId);
+        }
+
+        Forms = await query
             .Select(f => new FormListItem
             {
                 Id = f.Id,
@@ -37,9 +50,16 @@ public class IndexModel : PageModel
 
     public async Task<IActionResult> OnPostDeleteAsync(int id)
     {
+        var currentUser = await _userManager.GetUserAsync(User);
+        var isAdmin = User.IsInRole("admin");
+
         var form = await _context.Forms.FindAsync(id);
         if (form != null)
         {
+            if (!isAdmin && currentUser?.FaculteId != null && form.FaculteId != currentUser.FaculteId)
+            {
+                return Forbid();
+            }
             _context.Forms.Remove(form);
             await _context.SaveChangesAsync();
         }

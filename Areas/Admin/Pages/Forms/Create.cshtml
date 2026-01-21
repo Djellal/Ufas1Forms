@@ -35,6 +35,18 @@
                 <span asp-validation-for="Input.Slug" class="text-danger"></span>
                 <div class="form-text">URL-friendly identifier. Auto-generated from title.</div>
             </div>
+
+            @if (Model.IsAdmin)
+            {
+                <div class="mb-3">
+                    <label asp-for="Input.FaculteId" class="form-label">Faculty</label>
+                    <select asp-for="Input.FaculteId" asp-items="Model.FaculteOptions" class="form-select">
+                        <option value="">-- All Faculties --</option>
+                    </select>
+                    <span asp-validation-for="Input.FaculteId" class="text-danger"></span>
+                    <div class="form-text">Assign this form to a specific faculty. Leave empty for university-wide forms.</div>
+                </div>
+            }
             
             <div class="d-flex gap-2">
                 <button type="submit" class="btn btn-primary">Create Form</button>

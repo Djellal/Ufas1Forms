@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
@@ -8,7 +9,7 @@ using Ufas1Forms.Models;
 namespace Ufas1Forms.Areas.Admin.Pages.Forms;
 
 [Authorize(Roles = "admin,facadmin")]
-public class EditModel(ApplicationDbContext context) : PageModel
+public class EditModel(ApplicationDbContext context, UserManager<ApplicationUser> userManager) : PageModel
 {
     [BindProperty]
     public Form Form { get; set; } = default!;
@@ -18,10 +19,20 @@ public class EditModel(ApplicationDbContext context) : PageModel
 
     public async Task<IActionResult> OnGetAsync(int id)
     {
-        var form = await context.Forms
+        var currentUser = await userManager.GetUserAsync(User);
+        var isAdmin = User.IsInRole("admin");
+
+        var query = context.Forms
             .Include(f => f.Fields)
             .Include(f => f.Submissions)
-            .FirstOrDefaultAsync(f => f.Id == id);
+            .AsQueryable();
+
+        if (!isAdmin && currentUser?.FaculteId != null)
+        {
+            query = query.Where(f => f.FaculteId == currentUser.FaculteId);
+        }
+
+        var form = await query.FirstOrDefaultAsync(f => f.Id == id);
 
         if (form == null)
         {
@@ -37,11 +48,19 @@ public class EditModel(ApplicationDbContext context) : PageModel
 
     public async Task<IActionResult> OnPostAsync(int id)
     {
+        var currentUser = await userManager.GetUserAsync(User);
+        var isAdmin = User.IsInRole("admin");
+
         var form = await context.Forms.FindAsync(id);
 
         if (form == null)
         {
             return NotFound();
+        }
+
+        if (!isAdmin && currentUser?.FaculteId != null && form.FaculteId != currentUser.FaculteId)
+        {
+            return Forbid();
         }
 
         if (!ModelState.IsValid)

@@ -1,6 +1,5 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.AspNetCore.Identity;
 
 namespace Ufas1Forms.Models;
 
@@ -25,7 +24,7 @@ public class FormSubmission
     [MaxLength(450)]
     public string? SubmittedByUserId { get; set; }
 
-    public IdentityUser? SubmittedByUser { get; set; }
+    public ApplicationUser? SubmittedByUser { get; set; }
 
     [MaxLength(45)]
     public string? IpAddress { get; set; }

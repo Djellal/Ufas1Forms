@@ -25,7 +25,7 @@ public static class DbSeeder
 
     public static async Task SeedAdminUserAsync(IServiceProvider serviceProvider)
     {
-        var userManager = serviceProvider.GetRequiredService<UserManager<IdentityUser>>();
+        var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
         string adminEmail = "djellal@univ-setif.dz";
         string adminPassword = "DhB@571982";
@@ -35,7 +35,7 @@ public static class DbSeeder
 
         if (adminUser == null)
         {
-            adminUser = new IdentityUser
+            adminUser = new ApplicationUser
             {
                 UserName = adminEmail,
                 Email = adminEmail,
@@ -61,7 +61,7 @@ public static class DbSeeder
 
     public static async Task SeedSampleUsersAsync(IServiceProvider serviceProvider)
     {
-        var userManager = serviceProvider.GetRequiredService<UserManager<IdentityUser>>();
+        var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
         var sampleUsers = new[]
         {
@@ -76,7 +76,7 @@ public static class DbSeeder
             var user = await userManager.FindByEmailAsync(email);
             if (user == null)
             {
-                user = new IdentityUser
+                user = new ApplicationUser
                 {
                     UserName = email,
                     Email = email,
@@ -95,7 +95,7 @@ public static class DbSeeder
     public static async Task SeedSampleFormsAsync(IServiceProvider serviceProvider)
     {
         var context = serviceProvider.GetRequiredService<ApplicationDbContext>();
-        var userManager = serviceProvider.GetRequiredService<UserManager<IdentityUser>>();
+        var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
         if (await context.Forms.AnyAsync())
             return;
@@ -275,7 +275,7 @@ public static class DbSeeder
         await SeedSampleSubmissionsAsync(context, userManager);
     }
 
-    private static async Task SeedSampleSubmissionsAsync(ApplicationDbContext context, UserManager<IdentityUser> userManager)
+    private static async Task SeedSampleSubmissionsAsync(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
     {
         var registrationForm = await context.Forms
             .Include(f => f.Fields)

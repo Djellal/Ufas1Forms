@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
@@ -11,10 +12,12 @@ namespace Ufas1Forms.Areas.Admin.Pages.Forms;
 public class SubmissionsModel : PageModel
 {
     private readonly ApplicationDbContext _context;
+    private readonly UserManager<ApplicationUser> _userManager;
 
-    public SubmissionsModel(ApplicationDbContext context)
+    public SubmissionsModel(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
     {
         _context = context;
+        _userManager = userManager;
     }
 
     public Form Form { get; set; } = default!;
@@ -23,9 +26,17 @@ public class SubmissionsModel : PageModel
 
     public async Task<IActionResult> OnGetAsync(int id)
     {
-        var form = await _context.Forms
-            .AsNoTracking()
-            .FirstOrDefaultAsync(f => f.Id == id);
+        var currentUser = await _userManager.GetUserAsync(User);
+        var isAdmin = User.IsInRole("admin");
+
+        var formQuery = _context.Forms.AsNoTracking();
+
+        if (!isAdmin && currentUser?.FaculteId != null)
+        {
+            formQuery = formQuery.Where(f => f.FaculteId == currentUser.FaculteId);
+        }
+
+        var form = await formQuery.FirstOrDefaultAsync(f => f.Id == id);
 
         if (form == null)
         {

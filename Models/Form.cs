@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-using Microsoft.AspNetCore.Identity;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Ufas1Forms.Models;
 
@@ -39,7 +39,12 @@ public class Form
     [MaxLength(450)]
     public string? CreatedByUserId { get; set; }
 
-    public IdentityUser? CreatedByUser { get; set; }
+    public ApplicationUser? CreatedByUser { get; set; }
+
+    public int? FaculteId { get; set; }
+
+    [ForeignKey(nameof(FaculteId))]
+    public Faculte? Faculte { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
