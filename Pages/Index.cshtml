@@ -10,6 +10,49 @@
     <p class="lead">Create dynamic forms for registration, surveys, and data collection.</p>
 </div>
 
+
+
+@if (Model.ActiveForms.Any())
+{
+    <div class="container mt-5">
+        <h2 class="mb-4">Active Forms</h2>
+        <div class="row">
+            @foreach (var form in Model.ActiveForms)
+            {
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title">@form.Title</h5>
+                            <p class="card-text flex-grow-1">@form.Description</p>
+                            <div class="mt-auto">
+                                <small class="text-muted">Type: @form.Type | Created: @form.CreatedAt.ToString("MMM dd, yyyy")</small><br />
+                                <a asp-page="/Forms/Fill" asp-route-slug="@form.Slug" class="btn btn-sm btn-primary mt-2">Fill Form</a>
+                                @if (User.IsInRole("admin") || User.IsInRole("facadmin"))
+                                {
+                                    <a asp-area="Admin" asp-page="/Forms/Submissions" asp-route-id="@form.Id" class="btn btn-sm btn-outline-secondary mt-2">View Submissions</a>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+}
+else
+{
+    <p class="text-center">No active forms available at the moment.</p>
+}
+
+<div class="text-center mt-4">
+    <a asp-page="/Forms/Index" class="btn btn-primary btn-lg me-2">Browse All Forms</a>
+    @if (User.IsInRole("admin") || User.IsInRole("facadmin"))
+    {
+        <a asp-area="Admin" asp-page="/Forms/Index" class="btn btn-outline-primary btn-lg">Manage Forms</a>
+    }
+</div>
+
+
 <div class="row row-cols-1 row-cols-md-3 g-4 mb-5">
     <div class="col">
         <div class="card h-100 text-center">
@@ -59,40 +102,4 @@
             </div>
         </div>
     </div>
-</div>
-
-@if (Model.ActiveForms.Any())
-{
-    <div class="container mt-5">
-        <h2 class="mb-4">Active Forms</h2>
-        <div class="row">
-            @foreach (var form in Model.ActiveForms)
-            {
-                <div class="col-md-4 mb-4">
-                    <div class="card h-100">
-                        <div class="card-body d-flex flex-column">
-                            <h5 class="card-title">@form.Title</h5>
-                            <p class="card-text flex-grow-1">@form.Description</p>
-                            <div class="mt-auto">
-                                <small class="text-muted">Type: @form.Type | Created: @form.CreatedAt.ToString("MMM dd, yyyy")</small><br />
-                                <a asp-page="/Forms/Fill" asp-route-slug="@form.Slug" class="btn btn-sm btn-primary mt-2">Fill Form</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            }
-        </div>
-    </div>
-}
-else
-{
-    <p class="text-center">No active forms available at the moment.</p>
-}
-
-<div class="text-center mt-4">
-    <a asp-page="/Forms/Index" class="btn btn-primary btn-lg me-2">Browse All Forms</a>
-    @if (User.IsInRole("admin") || User.IsInRole("facadmin"))
-    {
-        <a asp-area="Admin" asp-page="/Forms/Index" class="btn btn-outline-primary btn-lg">Manage Forms</a>
-    }
 </div>
