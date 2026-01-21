@@ -1,0 +1,99 @@
+@page "{id:int}"
+@model Ufas1Forms.Areas.Admin.Pages.Forms.EditModel
+@{
+    ViewData["Title"] = "Edit Form";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8">
+            <h1>Edit Form</h1>
+
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form method="post">
+                        <input type="hidden" asp-for="Form.Id" />
+                        <input type="hidden" asp-for="Form.CreatedByUserId" />
+                        <input type="hidden" asp-for="Form.CreatedAt" />
+
+                        <div class="mb-3">
+                            <label asp-for="Form.Title" class="form-label"></label>
+                            <input asp-for="Form.Title" class="form-control" />
+                            <span asp-validation-for="Form.Title" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Form.Description" class="form-label"></label>
+                            <textarea asp-for="Form.Description" class="form-control" rows="3"></textarea>
+                            <span asp-validation-for="Form.Description" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Form.Type" class="form-label"></label>
+                            <select asp-for="Form.Type" asp-items="Html.GetEnumSelectList<Ufas1Forms.Models.FormType>()" class="form-select"></select>
+                            <span asp-validation-for="Form.Type" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Form.Status" class="form-label"></label>
+                            <select asp-for="Form.Status" asp-items="Html.GetEnumSelectList<Ufas1Forms.Models.FormStatus>()" class="form-select"></select>
+                            <span asp-validation-for="Form.Status" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Form.Slug" class="form-label"></label>
+                            <input asp-for="Form.Slug" class="form-control" />
+                            <span asp-validation-for="Form.Slug" class="text-danger"></span>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                            <a asp-page="./Index" class="btn btn-secondary">Back to List</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5 class="mb-0">Form Statistics</h5>
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-6">Fields</dt>
+                        <dd class="col-sm-6">@Model.FieldCount</dd>
+
+                        <dt class="col-sm-6">Submissions</dt>
+                        <dd class="col-sm-6">@Model.SubmissionCount</dd>
+
+                        <dt class="col-sm-6">Created</dt>
+                        <dd class="col-sm-6">@Model.Form.CreatedAt.ToString("g")</dd>
+
+                        <dt class="col-sm-6">Updated</dt>
+                        <dd class="col-sm-6">@Model.Form.UpdatedAt.ToString("g")</dd>
+                    </dl>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Actions</h5>
+                </div>
+                <div class="card-body d-grid gap-2">
+                    <a asp-page="./Builder" asp-route-id="@Model.Form.Id" class="btn btn-outline-primary">
+                        <i class="bi bi-tools"></i> Build Fields
+                    </a>
+                    <a asp-page="./Delete" asp-route-id="@Model.Form.Id" class="btn btn-outline-danger">
+                        <i class="bi bi-trash"></i> Delete Form
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -19,12 +19,14 @@ builder.Services.AddRazorPages();
 
 var app = builder.Build();
 
-// Seed roles and admin user at startup
+// Seed roles, users, and sample data at startup
 using (var scope = app.Services.CreateScope())
 {
     var serviceProvider = scope.ServiceProvider;
     await DbSeeder.SeedRolesAsync(serviceProvider);
     await DbSeeder.SeedAdminUserAsync(serviceProvider);
+    await DbSeeder.SeedSampleUsersAsync(serviceProvider);
+    await DbSeeder.SeedSampleFormsAsync(serviceProvider);
 }
 
 // Configure the HTTP request pipeline.

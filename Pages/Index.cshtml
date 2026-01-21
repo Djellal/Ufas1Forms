@@ -1,10 +1,69 @@
-﻿@page
+@page
 @model IndexModel
 @{
-    ViewData["Title"] = "Home page";
+    ViewData["Title"] = "Dynamic Form Builder";
 }
 
+<div class="text-center mb-5">
+    <h1 class="display-4">Dynamic Form Builder</h1>
+    <p class="lead">Create dynamic forms for registration, surveys, and data collection.</p>
+</div>
+
+<div class="row row-cols-1 row-cols-md-3 g-4 mb-5">
+    <div class="col">
+        <div class="card h-100 text-center">
+            <div class="card-body">
+                <h5 class="card-title">📝 Multiple Form Types</h5>
+                <p class="card-text">Registration, Survey, and Data Collection forms to meet your needs.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card h-100 text-center">
+            <div class="card-body">
+                <h5 class="card-title">🔧 14 Field Types</h5>
+                <p class="card-text">Text, email, select, radio, checkbox, date, file upload, and more.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card h-100 text-center">
+            <div class="card-body">
+                <h5 class="card-title">🎨 Visual Form Builder</h5>
+                <p class="card-text">Easy-to-use interface to create and edit forms without coding.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card h-100 text-center">
+            <div class="card-body">
+                <h5 class="card-title">📊 Response Collection</h5>
+                <p class="card-text">Store and view all form submissions in one place.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card h-100 text-center">
+            <div class="card-body">
+                <h5 class="card-title">📁 CSV Export</h5>
+                <p class="card-text">Export responses to CSV for analysis in Excel or other tools.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card h-100 text-center">
+            <div class="card-body">
+                <h5 class="card-title">📱 Responsive Design</h5>
+                <p class="card-text">Bootstrap 5 UI that works on desktop and mobile devices.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+    <a asp-page="/Forms/Index" class="btn btn-primary btn-lg me-2">Browse Forms</a>
+    @if (User.IsInRole("admin") || User.IsInRole("facadmin"))
+    {
+        <a asp-area="Admin" asp-page="/Forms/Index" class="btn btn-outline-primary btn-lg">Manage Forms</a>
+    }
 </div>

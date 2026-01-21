@@ -1,0 +1,114 @@
+@page "{id:int}"
+@model Ufas1Forms.Areas.Admin.Pages.Forms.SubmissionsModel
+@{
+    ViewData["Title"] = $"Submissions - {Model.Form.Title}";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1>Submissions</h1>
+        <p class="text-muted mb-0">Form: @Model.Form.Title</p>
+    </div>
+    <div>
+        <a asp-page="ExportCsv" asp-route-id="@Model.Form.Id" class="btn btn-success me-2">
+            <i class="bi bi-download me-1"></i>Export CSV
+        </a>
+        <a asp-page="Index" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i>Back to Forms
+        </a>
+    </div>
+</div>
+
+<div class="alert alert-info">
+    <strong>Total Submissions:</strong> @Model.TotalCount
+</div>
+
+@if (!Model.Submissions.Any())
+{
+    <div class="alert alert-warning">
+        No submissions yet for this form.
+    </div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Submitted At</th>
+                    <th>Submitted By</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var submission in Model.Submissions)
+                {
+                    <tr>
+                        <td>@submission.Id</td>
+                        <td>@submission.SubmittedAt.ToString("MMM dd, yyyy HH:mm")</td>
+                        <td>@(submission.SubmittedByEmail ?? "Anonymous")</td>
+                        <td>
+                            @{
+                                var statusClass = submission.Status switch
+                                {
+                                    SubmissionStatus.Completed => "bg-success",
+                                    SubmissionStatus.Partial => "bg-warning text-dark",
+                                    SubmissionStatus.Deleted => "bg-danger",
+                                    _ => "bg-secondary"
+                                };
+                            }
+                            <span class="badge @statusClass">@submission.Status</span>
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm" role="group">
+                                <a asp-page="SubmissionDetails" asp-route-formId="@Model.Form.Id" asp-route-submissionId="@submission.Id" 
+                                   class="btn btn-outline-primary" title="View Details">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <button type="button" class="btn btn-outline-danger" title="Delete"
+                                        data-bs-toggle="modal" data-bs-target="#deleteModal"
+                                        data-submission-id="@submission.Id">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete this submission? This action cannot be undone.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form method="post" asp-page-handler="Delete" class="d-inline">
+                    <input type="hidden" name="id" value="@Model.Form.Id" />
+                    <input type="hidden" name="submissionId" id="deleteSubmissionId" />
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.getElementById('deleteModal').addEventListener('show.bs.modal', function (event) {
+            var button = event.relatedTarget;
+            var submissionId = button.getAttribute('data-submission-id');
+            document.getElementById('deleteSubmissionId').value = submissionId;
+        });
+    </script>
+}

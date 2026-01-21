@@ -1,0 +1,41 @@
+@page
+@model Ufas1Forms.Pages.Forms.IndexModel
+@{
+    ViewData["Title"] = "Available Forms";
+}
+
+<div class="container py-4">
+    <h1 class="mb-4">Available Forms</h1>
+
+    @if (!Model.Forms.Any())
+    {
+        <div class="alert alert-info">
+            No forms are currently available.
+        </div>
+    }
+    else
+    {
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            @foreach (var form in Model.Forms)
+            {
+                <div class="col">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">@form.Title</h5>
+                            @if (!string.IsNullOrEmpty(form.Description))
+                            {
+                                <p class="card-text text-muted">@form.Description</p>
+                            }
+                            <span class="badge bg-secondary">@form.Type</span>
+                        </div>
+                        <div class="card-footer bg-transparent">
+                            <a asp-page="./Fill" asp-route-slug="@form.Slug" class="btn btn-primary">
+                                Fill Out Form
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

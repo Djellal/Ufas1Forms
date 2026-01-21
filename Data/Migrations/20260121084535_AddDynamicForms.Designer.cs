@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Ufas1Forms.Data;
 
@@ -10,9 +11,11 @@ using Ufas1Forms.Data;
 namespace Ufas1Forms.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260121084535_AddDynamicForms")]
+    partial class AddDynamicForms
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.0");
@@ -386,9 +389,6 @@ namespace Ufas1Forms.Data.Migrations
                     b.Property<int>("Order")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int?>("ParentFieldId")
-                        .HasColumnType("INTEGER");
-
                     b.Property<string>("Placeholder")
                         .HasMaxLength(255)
                         .HasColumnType("TEXT");
@@ -397,8 +397,6 @@ namespace Ufas1Forms.Data.Migrations
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ParentFieldId");
 
                     b.HasIndex("FormId", "Name")
                         .IsUnique();
@@ -584,14 +582,7 @@ namespace Ufas1Forms.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Ufas1Forms.Models.FormField", "ParentField")
-                        .WithMany("ChildFields")
-                        .HasForeignKey("ParentFieldId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.Navigation("Form");
-
-                    b.Navigation("ParentField");
                 });
 
             modelBuilder.Entity("Ufas1Forms.Models.FormSubmission", b =>
@@ -641,8 +632,6 @@ namespace Ufas1Forms.Data.Migrations
             modelBuilder.Entity("Ufas1Forms.Models.FormField", b =>
                 {
                     b.Navigation("Answers");
-
-                    b.Navigation("ChildFields");
                 });
 
             modelBuilder.Entity("Ufas1Forms.Models.FormSubmission", b =>
