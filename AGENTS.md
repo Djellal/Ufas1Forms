@@ -108,6 +108,20 @@ Ufas1Forms/
 
 Text, Email, Number, Textarea, Select, Radio, Checkbox, Date, Time, Phone, Url, Password, Hidden, File
 
+## Cascading Dropdowns
+
+Select fields support parent-child relationships for cascading dropdowns:
+- Set `ParentFieldId` on a child Select field to reference a parent Select field
+- In the child's `OptionsJson`, include `parentValue` to filter options:
+  ```json
+  [
+    {"value": "city1", "text": "City 1", "parentValue": "country1"},
+    {"value": "city2", "text": "City 2", "parentValue": "country1"},
+    {"value": "city3", "text": "City 3", "parentValue": "country2"}
+  ]
+  ```
+- When the parent value changes, child options are dynamically filtered via JavaScript
+
 ## Roles
 
 - `admin` - System administrator

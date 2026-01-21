@@ -87,16 +87,21 @@
 
                                             case FieldType.Select:
                                                 var selectOptions = OptionsJsonParser.Parse(field.OptionsJson);
+                                                var hasParent = field.ParentFieldId.HasValue;
+                                                var parentFieldName = hasParent ? Model.Form.Fields.FirstOrDefault(f => f.Id == field.ParentFieldId)?.Name : null;
                                                 <select id="@fieldId" 
                                                         name="Answers[@field.Name]" 
-                                                        class="form-select @(hasError ? "is-invalid" : "")"
+                                                        class="form-select @(hasError ? "is-invalid" : "") @(hasParent ? "cascading-child" : "")"
+                                                        data-parent-field="@(hasParent ? $"field_{field.ParentFieldId}" : "")"
                                                         @(field.IsRequired ? "required" : "")>
                                                     <option value="">@(field.Placeholder ?? "Select an option...")</option>
                                                     @foreach (var opt in selectOptions)
                                                     {
                                                         var isSelected = Model.Answers.GetValueOrDefault(field.Name) == opt.Value || 
                                                                         (string.IsNullOrEmpty(Model.Answers.GetValueOrDefault(field.Name)) && field.DefaultValue == opt.Value);
-                                                        <option value="@opt.Value" selected="@isSelected">@opt.Text</option>
+                                                        <option value="@opt.Value" 
+                                                                data-parent-value="@opt.ParentValue"
+                                                                selected="@isSelected">@opt.Text</option>
                                                     }
                                                 </select>
                                                 break;
@@ -217,3 +222,69 @@
         </div>
     }
 </div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize cascading dropdowns
+            const childSelects = document.querySelectorAll('.cascading-child');
+            
+            childSelects.forEach(function(childSelect) {
+                const parentFieldId = childSelect.dataset.parentField;
+                if (!parentFieldId) return;
+                
+                const parentSelect = document.getElementById(parentFieldId);
+                if (!parentSelect) return;
+                
+                // Store all options for later filtering
+                const allOptions = Array.from(childSelect.querySelectorAll('option')).map(opt => ({
+                    value: opt.value,
+                    text: opt.textContent,
+                    parentValue: opt.dataset.parentValue || ''
+                }));
+                
+                function filterOptions() {
+                    const selectedParentValue = parentSelect.value;
+                    const currentValue = childSelect.value;
+                    
+                    // Clear current options except the placeholder
+                    while (childSelect.options.length > 1) {
+                        childSelect.remove(1);
+                    }
+                    
+                    // Add filtered options
+                    allOptions.forEach(opt => {
+                        if (!opt.value) return; // Skip placeholder
+                        
+                        // Show option if no parentValue set (works for all parents) or matches parent
+                        if (!opt.parentValue || opt.parentValue === selectedParentValue) {
+                            const option = document.createElement('option');
+                            option.value = opt.value;
+                            option.textContent = opt.text;
+                            option.dataset.parentValue = opt.parentValue;
+                            if (opt.value === currentValue) {
+                                option.selected = true;
+                            }
+                            childSelect.appendChild(option);
+                        }
+                    });
+                    
+                    // Reset selection if current value is no longer valid
+                    const validValues = Array.from(childSelect.options).map(o => o.value);
+                    if (!validValues.includes(currentValue)) {
+                        childSelect.value = '';
+                    }
+                    
+                    // Trigger change event for nested cascading
+                    childSelect.dispatchEvent(new Event('change'));
+                }
+                
+                // Filter on parent change
+                parentSelect.addEventListener('change', filterOptions);
+                
+                // Initial filter
+                filterOptions();
+            });
+        });
+    </script>
+}

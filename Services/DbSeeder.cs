@@ -187,7 +187,68 @@ public static class DbSeeder
 
         context.Forms.Add(eventForm);
 
-        // Form 4: Draft form (not published)
+        // Form 4: Cascading Dropdown Demo
+        var cascadingForm = new Form
+        {
+            Title = "Location Selection Demo",
+            Description = "Demonstrates cascading dropdowns - select a country to see its cities.",
+            Type = FormType.DataCollection,
+            Status = FormStatus.Published,
+            Slug = "location-demo",
+            CreatedByUserId = adminId,
+            CreatedAt = DateTime.UtcNow.AddDays(-5),
+            UpdatedAt = DateTime.UtcNow
+        };
+
+        context.Forms.Add(cascadingForm);
+        await context.SaveChangesAsync();
+
+        // Add country field first
+        var countryField = new FormField
+        {
+            FormId = cascadingForm.Id,
+            Name = "country",
+            Label = "Country",
+            FieldType = FieldType.Select,
+            IsRequired = true,
+            Order = 1,
+            Placeholder = "Select a country...",
+            OptionsJson = "[{\"value\":\"algeria\",\"text\":\"Algeria\"},{\"value\":\"france\",\"text\":\"France\"},{\"value\":\"usa\",\"text\":\"United States\"}]"
+        };
+        context.FormFields.Add(countryField);
+        await context.SaveChangesAsync();
+
+        // Add city field with parent reference
+        var cityField = new FormField
+        {
+            FormId = cascadingForm.Id,
+            Name = "city",
+            Label = "City",
+            FieldType = FieldType.Select,
+            IsRequired = true,
+            Order = 2,
+            Placeholder = "Select a city...",
+            ParentFieldId = countryField.Id,
+            OptionsJson = "[{\"value\":\"algiers\",\"text\":\"Algiers\",\"parentValue\":\"algeria\"},{\"value\":\"oran\",\"text\":\"Oran\",\"parentValue\":\"algeria\"},{\"value\":\"setif\",\"text\":\"Sétif\",\"parentValue\":\"algeria\"},{\"value\":\"constantine\",\"text\":\"Constantine\",\"parentValue\":\"algeria\"},{\"value\":\"paris\",\"text\":\"Paris\",\"parentValue\":\"france\"},{\"value\":\"lyon\",\"text\":\"Lyon\",\"parentValue\":\"france\"},{\"value\":\"marseille\",\"text\":\"Marseille\",\"parentValue\":\"france\"},{\"value\":\"newyork\",\"text\":\"New York\",\"parentValue\":\"usa\"},{\"value\":\"losangeles\",\"text\":\"Los Angeles\",\"parentValue\":\"usa\"},{\"value\":\"chicago\",\"text\":\"Chicago\",\"parentValue\":\"usa\"}]"
+        };
+        context.FormFields.Add(cityField);
+
+        // Add a simple text field
+        var nameField = new FormField
+        {
+            FormId = cascadingForm.Id,
+            Name = "full_name",
+            Label = "Your Name",
+            FieldType = FieldType.Text,
+            IsRequired = true,
+            Order = 3,
+            Placeholder = "Enter your name"
+        };
+        context.FormFields.Add(nameField);
+
+        await context.SaveChangesAsync();
+
+        // Form 5: Draft form (not published)
         var draftForm = new Form
         {
             Title = "Library Feedback Form",
