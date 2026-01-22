@@ -46,6 +46,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         modelBuilder.Entity<FormSubmission>(entity =>
         {
             entity.HasIndex(s => new { s.FormId, s.SubmittedAt });
+            entity.HasIndex(s => s.FaculteId);
+            entity.HasIndex(s => s.DomaineId);
             entity.HasOne(s => s.Form)
                   .WithMany(f => f.Submissions)
                   .HasForeignKey(s => s.FormId)
@@ -53,6 +55,14 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             entity.HasOne(s => s.SubmittedByUser)
                   .WithMany()
                   .HasForeignKey(s => s.SubmittedByUserId)
+                  .OnDelete(DeleteBehavior.SetNull);
+            entity.HasOne(s => s.Faculte)
+                  .WithMany()
+                  .HasForeignKey(s => s.FaculteId)
+                  .OnDelete(DeleteBehavior.SetNull);
+            entity.HasOne(s => s.Domaine)
+                  .WithMany()
+                  .HasForeignKey(s => s.DomaineId)
                   .OnDelete(DeleteBehavior.SetNull);
         });
 

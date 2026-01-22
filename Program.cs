@@ -24,6 +24,8 @@ using (var scope = app.Services.CreateScope())
 {
     var serviceProvider = scope.ServiceProvider;
     await DbSeeder.SeedRolesAsync(serviceProvider);
+    await DbSeeder.SeedFacultesAsync(serviceProvider);
+    await DbSeeder.SeedDomainesAsync(serviceProvider);
     await DbSeeder.SeedAdminUserAsync(serviceProvider);
     await DbSeeder.SeedSampleUsersAsync(serviceProvider);
     await DbSeeder.SeedSampleFormsAsync(serviceProvider);

@@ -34,6 +34,16 @@ public class FormSubmission
 
     public SubmissionStatus Status { get; set; } = SubmissionStatus.Completed;
 
+    public int? FaculteId { get; set; }
+
+    [ForeignKey(nameof(FaculteId))]
+    public Faculte? Faculte { get; set; }
+
+    public int? DomaineId { get; set; }
+
+    [ForeignKey(nameof(DomaineId))]
+    public Domaine? Domaine { get; set; }
+
     public ICollection<FormAnswer> Answers { get; set; } = new List<FormAnswer>();
 
     public ICollection<UploadedFile> Files { get; set; } = new List<UploadedFile>();

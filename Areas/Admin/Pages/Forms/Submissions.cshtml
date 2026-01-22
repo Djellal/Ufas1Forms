@@ -19,6 +19,46 @@
     </div>
 </div>
 
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3 align-items-end">
+            <input type="hidden" name="id" value="@Model.Form.Id" />
+            @if (User.IsInRole("admin"))
+            {
+                <div class="col-md-3">
+                    <label class="form-label">Faculty</label>
+                    <select name="FilterFaculteId" class="form-select" onchange="this.form.submit()">
+                        <option value="">-- All Faculties --</option>
+                        @foreach (var option in Model.FaculteOptions)
+                        {
+                            <option value="@option.Value" selected="@(option.Value == Model.FilterFaculteId?.ToString())">@option.Text</option>
+                        }
+                    </select>
+                </div>
+            }
+            @if (Model.FilterFaculteId.HasValue)
+            {
+                <div class="col-md-3">
+                    <label class="form-label">Domain</label>
+                    <select name="FilterDomaineId" class="form-select" onchange="this.form.submit()">
+                        <option value="">-- All Domains --</option>
+                        @foreach (var option in Model.DomaineOptions)
+                        {
+                            <option value="@option.Value" selected="@(option.Value == Model.FilterDomaineId?.ToString())">@option.Text</option>
+                        }
+                    </select>
+                </div>
+            }
+            @if (Model.FilterFaculteId.HasValue || Model.FilterDomaineId.HasValue)
+            {
+                <div class="col-auto">
+                    <a asp-page="Submissions" asp-route-id="@Model.Form.Id" class="btn btn-outline-secondary">Clear Filters</a>
+                </div>
+            }
+        </form>
+    </div>
+</div>
+
 <div class="alert alert-info">
     <strong>Total Submissions:</strong> @Model.TotalCount
 </div>
@@ -38,6 +78,8 @@ else
                     <th>ID</th>
                     <th>Submitted At</th>
                     <th>Submitted By</th>
+                    <th>Faculty</th>
+                    <th>Domain</th>
                     <th>Status</th>
                     <th>Actions</th>
                 </tr>
@@ -49,6 +91,8 @@ else
                         <td>@submission.Id</td>
                         <td>@submission.SubmittedAt.ToString("MMM dd, yyyy HH:mm")</td>
                         <td>@(submission.SubmittedByEmail ?? "Anonymous")</td>
+                        <td>@(submission.FaculteName ?? "-")</td>
+                        <td>@(submission.DomaineName ?? "-")</td>
                         <td>
                             @{
                                 var statusClass = submission.Status switch

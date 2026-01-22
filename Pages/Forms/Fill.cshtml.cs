@@ -66,6 +66,25 @@ public class FillModel(ApplicationDbContext context) : PageModel
         if (!ModelState.IsValid)
             return Page();
 
+        int? faculteId = null;
+        int? domaineId = null;
+
+        var faculteField = Form.Fields.FirstOrDefault(f => 
+            f.Name.Equals("faculte", StringComparison.OrdinalIgnoreCase) || 
+            f.Name.Equals("faculteid", StringComparison.OrdinalIgnoreCase));
+        if (faculteField != null && Answers.TryGetValue(faculteField.Name, out var faculteValue) && int.TryParse(faculteValue, out var fId))
+        {
+            faculteId = fId;
+        }
+
+        var domaineField = Form.Fields.FirstOrDefault(f => 
+            f.Name.Equals("domaine", StringComparison.OrdinalIgnoreCase) || 
+            f.Name.Equals("domaineid", StringComparison.OrdinalIgnoreCase));
+        if (domaineField != null && Answers.TryGetValue(domaineField.Name, out var domaineValue) && int.TryParse(domaineValue, out var dId))
+        {
+            domaineId = dId;
+        }
+
         var submission = new FormSubmission
         {
             FormId = Form.Id,
@@ -75,7 +94,9 @@ public class FillModel(ApplicationDbContext context) : PageModel
             UserAgent = Request.Headers.UserAgent.ToString().Length > 500 
                 ? Request.Headers.UserAgent.ToString()[..500] 
                 : Request.Headers.UserAgent.ToString(),
-            Status = SubmissionStatus.Completed
+            Status = SubmissionStatus.Completed,
+            FaculteId = faculteId,
+            DomaineId = domaineId
         };
 
         context.FormSubmissions.Add(submission);

@@ -23,6 +23,70 @@ public static class DbSeeder
         }
     }
 
+    public static async Task SeedFacultesAsync(IServiceProvider serviceProvider)
+    {
+        var context = serviceProvider.GetRequiredService<ApplicationDbContext>();
+
+        if (await context.Facultes.AnyAsync())
+            return;
+
+        var facultes = new List<Faculte>
+        {
+            new() { Id = 1, Nom = "FACULTÉ DE MÉDECINE" },
+            new() { Id = 2, Nom = "FACULTÉ DE TECHNOLOGIE" },
+            new() { Id = 3, Nom = "FACULTÉ DES SCIENCES" },
+            new() { Id = 4, Nom = "FACULTÉ DES SCIENCES DE LA NATURE ET DE LA VIE" },
+            new() { Id = 5, Nom = "FACULTÉ DES SCIENCES ECONOMIQUES ET DE GESTION" },
+            new() { Id = 6, Nom = "INSTITUT D'ARCHITECTURE ET DES SCIENCES DE LA TERRE" },
+            new() { Id = 7, Nom = "INSTITUT D'OPTIQUE ET DE MÉCANIQUE DE PRÉCISION" },
+            new() { Id = 8, Nom = "INSTITUT DES SCIENCES ET TECHNIQUES DES MATÉRIAUX" },
+        };
+
+        context.Facultes.AddRange(facultes);
+        await context.SaveChangesAsync();
+    }
+
+    public static async Task SeedDomainesAsync(IServiceProvider serviceProvider)
+    {
+        var context = serviceProvider.GetRequiredService<ApplicationDbContext>();
+
+        if (await context.Domaines.AnyAsync())
+            return;
+
+        var domaines = new List<Domaine>
+        {
+            // FACULTÉ DES SCIENCES DE LA NATURE ET DE LA VIE (Id: 4)
+            new() { Nom = "Sciences de la Nature et de la Vie Master 1", FaculteId = 4 },
+            new() { Nom = "Sciences de la Nature et de la Vie Master 2", FaculteId = 4 },
+
+            // FACULTÉ DES SCIENCES (Id: 3)
+            new() { Nom = "Mathématiques et Informatique Master 1", FaculteId = 3 },
+            new() { Nom = "Mathématiques et Informatique Master 2", FaculteId = 3 },
+            new() { Nom = "Sciences de la Matière Master 1", FaculteId = 3 },
+            new() { Nom = "Sciences de la Matière Master 2", FaculteId = 3 },
+
+            // FACULTÉ DE TECHNOLOGIE (Id: 2)
+            new() { Nom = "Science et Technologie Licence", FaculteId = 2 },
+            new() { Nom = "Science et Technologie Master 1", FaculteId = 2 },
+            new() { Nom = "Science et Technologie Master 2", FaculteId = 2 },
+
+            // INSTITUT D'ARCHITECTURE ET DES SCIENCES DE LA TERRE (Id: 6)
+            new() { Nom = "Architecture, Urbanisme et Métiers de la Ville Licence", FaculteId = 6 },
+            new() { Nom = "Architecture, Urbanisme et Métiers de la Ville Master 1", FaculteId = 6 },
+            new() { Nom = "Architecture, Urbanisme et Métiers de la Ville Master 2", FaculteId = 6 },
+            new() { Nom = "Sciences de la Terre et de l'Univers Master 1", FaculteId = 6 },
+            new() { Nom = "Sciences de la Terre et de l'Univers Master 2", FaculteId = 6 },
+
+            // FACULTÉ DES SCIENCES ECONOMIQUES ET DE GESTION (Id: 5)
+            new() { Nom = "SEGC - Sciences Economiques, Gestion et Commerce Licence", FaculteId = 5 },
+            new() { Nom = "SEGC - Sciences Economiques, Gestion et Commerce Master 1", FaculteId = 5 },
+            new() { Nom = "SEGC - Sciences Economiques, Gestion et Commerce Master 2", FaculteId = 5 },
+        };
+
+        context.Domaines.AddRange(domaines);
+        await context.SaveChangesAsync();
+    }
+
     public static async Task SeedAdminUserAsync(IServiceProvider serviceProvider)
     {
         var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();

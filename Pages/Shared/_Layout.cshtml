@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en" data-bs-theme="light">
 <head>
     <meta charset="utf-8" />
@@ -36,10 +36,25 @@
                         </li>
                         @if (User.IsInRole("admin") || User.IsInRole("facadmin"))
                         {
-                            <li class="nav-item">
-                                <a class="nav-link text-white-50 px-3 nav-hover" asp-area="Admin" asp-page="/Forms/Index">
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle text-white-50 px-3 nav-hover" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                     <i class="bi bi-gear me-1"></i> Admin
                                 </a>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <a class="dropdown-item" asp-area="Admin" asp-page="/Forms/Index">
+                                            <i class="bi bi-file-earmark-text me-2"></i>Forms
+                                        </a>
+                                    </li>
+                                    @if (User.IsInRole("admin"))
+                                    {
+                                        <li>
+                                            <a class="dropdown-item" asp-area="Admin" asp-page="/Users/Index">
+                                                <i class="bi bi-people me-2"></i>Users
+                                            </a>
+                                        </li>
+                                    }
+                                </ul>
                             </li>
                         }
                         <li class="nav-item">
