@@ -24,6 +24,14 @@
                                 <i class="bi bi-file-earmark-text me-2"></i>Forms
                             </a>
                         </li>
+                        @if (User.IsInRole("admin"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="Admin" asp-page="/Users/Index">
+                                    <i class="bi bi-people me-2"></i>Users
+                                </a>
+                            </li>
+                        }
                     </ul>
                 </div>
             </div>
@@ -34,4 +42,6 @@
     </div>
 </div>
 
-@await RenderSectionAsync("Scripts", required: false)
+@section Scripts {
+    @await RenderSectionAsync("Scripts", required: false)
+}

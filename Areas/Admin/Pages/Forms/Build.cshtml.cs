@@ -1,210 +1,226 @@
+using System.ComponentModel.DataAnnotations;
+using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using System.Text.RegularExpressions;
 using Ufas1Forms.Data;
 using Ufas1Forms.Models;
 
 namespace Ufas1Forms.Areas.Admin.Pages.Forms;
 
 [Authorize(Roles = "admin,facadmin")]
-public partial class BuildModel(ApplicationDbContext context) : PageModel
+public partial class BuildModel : PageModel
 {
-    public Form Form { get; set; } = default!;
-    public List<FormField> Fields { get; set; } = [];
+    private readonly ApplicationDbContext _context;
+    private readonly UserManager<ApplicationUser> _userManager;
+
+    public BuildModel(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
+    {
+        _context = context;
+        _userManager = userManager;
+    }
+
+    public Form Form { get; set; } = new();
+    public List<FormField> Fields { get; set; } = new();
+    public List<FormField> SelectFields { get; set; } = new();
 
     [BindProperty]
-    public FormFieldInput FieldInput { get; set; } = new();
+    public FieldInputModel Input { get; set; } = new();
 
     public async Task<IActionResult> OnGetAsync(int id)
     {
-        var form = await context.Forms
-            .Include(f => f.Fields.OrderBy(ff => ff.Order))
-            .FirstOrDefaultAsync(f => f.Id == id);
-
-        if (form is null)
+        var form = await GetFormAsync(id);
+        if (form == null)
             return NotFound();
 
         Form = form;
-        Fields = form.Fields.ToList();
+        Fields = form.Fields.OrderBy(f => f.Order).ToList();
+        SelectFields = Fields.Where(f => f.FieldType == FieldType.Select).ToList();
         return Page();
     }
 
-    public async Task<IActionResult> OnPostAddFieldAsync(int id)
+    public async Task<IActionResult> OnPostSaveFieldAsync(int id)
     {
-        var form = await context.Forms
-            .Include(f => f.Fields)
-            .FirstOrDefaultAsync(f => f.Id == id);
-
-        if (form is null)
+        var form = await GetFormAsync(id);
+        if (form == null)
             return NotFound();
 
-        if (!ModelState.IsValid)
-        {
-            Form = form;
-            Fields = form.Fields.OrderBy(f => f.Order).ToList();
-            return Page();
-        }
-
-        var name = GenerateFieldName(FieldInput.Label);
-        if (form.Fields.Any(f => f.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
-        {
-            name = $"{name}_{form.Fields.Count + 1}";
-        }
-
-        var maxOrder = form.Fields.Any() ? form.Fields.Max(f => f.Order) : 0;
-
-        var field = new FormField
-        {
-            FormId = id,
-            Label = FieldInput.Label,
-            Name = name,
-            FieldType = FieldInput.FieldType,
-            HelpText = FieldInput.HelpText,
-            Placeholder = FieldInput.Placeholder,
-            DefaultValue = FieldInput.DefaultValue,
-            IsRequired = FieldInput.IsRequired,
-            OptionsJson = FieldInput.OptionsJson,
-            ParentFieldId = FieldInput.ParentFieldId,
-            Order = maxOrder + 1
-        };
-
-        context.FormFields.Add(field);
-        await context.SaveChangesAsync();
-
-        return RedirectToPage(new { id });
-    }
-
-    public async Task<IActionResult> OnPostEditFieldAsync(int id, int fieldId)
-    {
-        var field = await context.FormFields
-            .Include(f => f.Form)
-            .ThenInclude(f => f!.Fields)
-            .FirstOrDefaultAsync(f => f.Id == fieldId && f.FormId == id);
-
-        if (field is null)
-            return NotFound();
+        Form = form;
+        Fields = form.Fields.OrderBy(f => f.Order).ToList();
+        SelectFields = Fields.Where(f => f.FieldType == FieldType.Select).ToList();
 
         if (!ModelState.IsValid)
-        {
-            Form = field.Form!;
-            Fields = field.Form!.Fields.OrderBy(f => f.Order).ToList();
             return Page();
-        }
 
-        var name = GenerateFieldName(FieldInput.Label);
-        if (field.Form!.Fields.Any(f => f.Id != fieldId && f.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
+        if (Input.FieldId.HasValue)
         {
-            name = $"{name}_{fieldId}";
+            // Edit existing field
+            var field = await _context.FormFields.FirstOrDefaultAsync(f => f.Id == Input.FieldId && f.FormId == id);
+            if (field == null)
+                return NotFound();
+
+            field.Label = Input.Label;
+            field.Name = GenerateUniqueName(Input.Label, id, field.Id);
+            field.FieldType = Input.FieldType;
+            field.HelpText = Input.HelpText;
+            field.Placeholder = Input.Placeholder;
+            field.DefaultValue = Input.DefaultValue;
+            field.IsRequired = Input.IsRequired;
+            field.OptionsJson = Input.OptionsJson;
+            field.ParentFieldId = Input.ParentFieldId;
+        }
+        else
+        {
+            // Add new field
+            var maxOrder = form.Fields.Any() ? form.Fields.Max(f => f.Order) : 0;
+
+            var field = new FormField
+            {
+                FormId = id,
+                Label = Input.Label,
+                Name = GenerateUniqueName(Input.Label, id, null),
+                FieldType = Input.FieldType,
+                HelpText = Input.HelpText,
+                Placeholder = Input.Placeholder,
+                DefaultValue = Input.DefaultValue,
+                IsRequired = Input.IsRequired,
+                OptionsJson = Input.OptionsJson,
+                ParentFieldId = Input.ParentFieldId,
+                Order = maxOrder + 1
+            };
+
+            _context.FormFields.Add(field);
         }
 
-        field.Label = FieldInput.Label;
-        field.Name = name;
-        field.FieldType = FieldInput.FieldType;
-        field.HelpText = FieldInput.HelpText;
-        field.Placeholder = FieldInput.Placeholder;
-        field.DefaultValue = FieldInput.DefaultValue;
-        field.IsRequired = FieldInput.IsRequired;
-        field.OptionsJson = FieldInput.OptionsJson;
-        field.ParentFieldId = FieldInput.ParentFieldId;
-
-        await context.SaveChangesAsync();
-
+        await _context.SaveChangesAsync();
         return RedirectToPage(new { id });
     }
 
     public async Task<IActionResult> OnPostDeleteFieldAsync(int id, int fieldId)
     {
-        var field = await context.FormFields
-            .FirstOrDefaultAsync(f => f.Id == fieldId && f.FormId == id);
-
-        if (field is null)
+        var form = await GetFormAsync(id);
+        if (form == null)
             return NotFound();
 
-        context.FormFields.Remove(field);
-        await context.SaveChangesAsync();
+        var field = await _context.FormFields.FirstOrDefaultAsync(f => f.Id == fieldId && f.FormId == id);
+        if (field != null)
+        {
+            _context.FormFields.Remove(field);
+            await _context.SaveChangesAsync();
+        }
 
         return RedirectToPage(new { id });
     }
 
     public async Task<IActionResult> OnPostMoveUpAsync(int id, int fieldId)
     {
-        var fields = await context.FormFields
+        var fields = await _context.FormFields
             .Where(f => f.FormId == id)
             .OrderBy(f => f.Order)
             .ToListAsync();
 
-        var currentIndex = fields.FindIndex(f => f.Id == fieldId);
-        if (currentIndex <= 0)
-            return RedirectToPage(new { id });
-
-        var current = fields[currentIndex];
-        var previous = fields[currentIndex - 1];
-
-        (current.Order, previous.Order) = (previous.Order, current.Order);
-
-        await context.SaveChangesAsync();
+        var idx = fields.FindIndex(f => f.Id == fieldId);
+        if (idx > 0)
+        {
+            (fields[idx].Order, fields[idx - 1].Order) = (fields[idx - 1].Order, fields[idx].Order);
+            await _context.SaveChangesAsync();
+        }
 
         return RedirectToPage(new { id });
     }
 
     public async Task<IActionResult> OnPostMoveDownAsync(int id, int fieldId)
     {
-        var fields = await context.FormFields
+        var fields = await _context.FormFields
             .Where(f => f.FormId == id)
             .OrderBy(f => f.Order)
             .ToListAsync();
 
-        var currentIndex = fields.FindIndex(f => f.Id == fieldId);
-        if (currentIndex < 0 || currentIndex >= fields.Count - 1)
-            return RedirectToPage(new { id });
-
-        var current = fields[currentIndex];
-        var next = fields[currentIndex + 1];
-
-        (current.Order, next.Order) = (next.Order, current.Order);
-
-        await context.SaveChangesAsync();
+        var idx = fields.FindIndex(f => f.Id == fieldId);
+        if (idx >= 0 && idx < fields.Count - 1)
+        {
+            (fields[idx].Order, fields[idx + 1].Order) = (fields[idx + 1].Order, fields[idx].Order);
+            await _context.SaveChangesAsync();
+        }
 
         return RedirectToPage(new { id });
+    }
+
+    private async Task<Form?> GetFormAsync(int id)
+    {
+        var currentUser = await _userManager.GetUserAsync(User);
+        var isAdmin = User.IsInRole("admin");
+
+        var query = _context.Forms
+            .Include(f => f.Fields)
+            .AsQueryable();
+
+        if (!isAdmin && currentUser?.FaculteId != null)
+        {
+            query = query.Where(f => f.FaculteId == currentUser.FaculteId);
+        }
+
+        return await query.FirstOrDefaultAsync(f => f.Id == id);
+    }
+
+    private string GenerateUniqueName(string label, int formId, int? excludeFieldId)
+    {
+        var baseName = GenerateFieldName(label);
+        var name = baseName;
+        var counter = 1;
+
+        var existingNames = _context.FormFields
+            .Where(f => f.FormId == formId && f.Id != excludeFieldId)
+            .Select(f => f.Name)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        while (existingNames.Contains(name))
+        {
+            name = $"{baseName}_{counter++}";
+        }
+
+        return name;
     }
 
     private static string GenerateFieldName(string label)
     {
         var name = label.ToLowerInvariant();
-        name = FieldNameRegex().Replace(name, "_");
+        name = NonAlphaNumericRegex().Replace(name, "_");
         name = MultipleUnderscoreRegex().Replace(name, "_");
         return name.Trim('_');
     }
 
     [GeneratedRegex(@"[^a-z0-9]+")]
-    private static partial Regex FieldNameRegex();
+    private static partial Regex NonAlphaNumericRegex();
 
     [GeneratedRegex(@"_+")]
     private static partial Regex MultipleUnderscoreRegex();
-}
 
-public class FormFieldInput
-{
-    [System.ComponentModel.DataAnnotations.Required]
-    [System.ComponentModel.DataAnnotations.MaxLength(255)]
-    public string Label { get; set; } = string.Empty;
+    public class FieldInputModel
+    {
+        public int? FieldId { get; set; }
 
-    public FieldType FieldType { get; set; } = FieldType.Text;
+        [Required]
+        [MaxLength(255)]
+        public string Label { get; set; } = string.Empty;
 
-    [System.ComponentModel.DataAnnotations.MaxLength(500)]
-    public string? HelpText { get; set; }
+        public FieldType FieldType { get; set; } = FieldType.Text;
 
-    [System.ComponentModel.DataAnnotations.MaxLength(255)]
-    public string? Placeholder { get; set; }
+        [MaxLength(500)]
+        public string? HelpText { get; set; }
 
-    [System.ComponentModel.DataAnnotations.MaxLength(500)]
-    public string? DefaultValue { get; set; }
+        [MaxLength(255)]
+        public string? Placeholder { get; set; }
 
-    public bool IsRequired { get; set; }
+        [MaxLength(500)]
+        public string? DefaultValue { get; set; }
 
-    public string? OptionsJson { get; set; }
+        public bool IsRequired { get; set; }
 
-    public int? ParentFieldId { get; set; }
+        public string? OptionsJson { get; set; }
+
+        public int? ParentFieldId { get; set; }
+    }
 }
